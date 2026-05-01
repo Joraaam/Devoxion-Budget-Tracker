@@ -189,13 +189,11 @@ export default function Schedules({ addTransaction }) {
                   key={dateKey}
                   onClick={() => setSelectedDate(dateKey)}
                   style={{
-                    ...calendarCell,
-                    border: isSelected
-                      ? "1px solid white"
-                      : "1px solid transparent",
-                    color: "white",
-                    cursor: "pointer",
-                  }}
+  ...calendarCell,
+  border: isSelected ? "1px solid white" : undefined,
+  color: "white",
+  cursor: "pointer",
+}}
                 >
                   <strong>{day}</strong>
 
@@ -422,8 +420,11 @@ const calendarGrid = {
 const calendarCell = {
   minHeight: "72px",
   borderRadius: "10px",
-  padding: "8px",
-  textAlign: "left",
+  display: "flex",            // 👈 ADD
+  alignItems: "center",       // 👈 vertical center
+  justifyContent: "center",   // 👈 horizontal center
+  flexDirection: "column",    // 👈 keep pills below if any
+  textAlign: "center",
   background: "transparent",
 };
 

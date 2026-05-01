@@ -5,6 +5,7 @@ import Schedules from "./pages/Schedules";
 import Transactions from "./pages/Transactions";
 import Goals from "./pages/Goals";
 import ProfitLoss from "./pages/ProfitLoss";
+import logo from "./assets/logo.png";
 
 export default function App() {
   const [page, setPage] = useState("overview");
@@ -48,27 +49,52 @@ export default function App() {
         <Sidebar setPage={changePage} page={page} sidebarOpen={sidebarOpen} />
 
         <main
-          style={{
-            flex: 1,
-            padding: "40px",
-            background: "#111217",
-            color: "white",
-          }}
-        >
-          {page === "profit-loss" && <ProfitLoss transactions={transactions} />}
-          {page === "overview" && <Overview transactions={transactions} />}
-          {page === "schedules" && (
-            <Schedules addTransaction={addTransaction} />
-          )}
-          {page === "transactions" && (
-            <Transactions
-              transactions={transactions}
-              addTransaction={addTransaction}
-            />
-          )}
-          {page === "goals" && <Goals />}
+  style={{
+    flex: 1,
+    width: "100%",
+    minWidth: 0,
+    padding: "100px 40px 40px",
+    background: "#111217",
+    color: "white",
+    overflowX: "hidden",
+  }}
+>
+          <div style={topBar}>
+            <img src={logo} alt="logo" style={topLogo} />
+          </div>
+
+<div style={pageContainer}>
+  {page === "overview" && <Overview transactions={transactions} />}
+  {page === "schedules" && <Schedules addTransaction={addTransaction} />}
+  {page === "transactions" && (
+    <Transactions transactions={transactions} addTransaction={addTransaction} />
+  )}
+  {page === "goals" && <Goals />}
+  {page === "profit-loss" && <ProfitLoss transactions={transactions} />}
+</div>
         </main>
       </div>
     </>
   );
 }
+
+const topBar = {
+  width: "100%",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  marginBottom: "5px",
+  marginTop: "-70px",
+};
+
+const topLogo = {
+  height: "70px",
+  maxWidth: "180px",
+  objectFit: "contain",
+};
+
+const pageContainer = {
+  width: "100%",
+  maxWidth: "1200px",
+  margin: "0 auto",
+};
