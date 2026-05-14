@@ -9,49 +9,104 @@ import logo from "./assets/logo.png";
 import { supabase } from "./lib/supabase";
 import Login from "./pages/Login";
 
+const API_URL = "http://localhost:3001";
+
 export default function App() {
   const [page, setPage] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [session, setSession] = useState(null);
-
-  const [transactions, setTransactions] = useState(() => {
-    const saved = localStorage.getItem("transactions");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     async function setupAuth() {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+
+      if (data.session) {
+        await fetchTransactions();
+      }
     }
 
     setupAuth();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
+
+      if (session) {
+        await fetchTransactions();
+      } else {
+        setTransactions([]);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  function addTransaction(transaction) {
-    const updated = [
-      {
-        ...transaction,
-        wallet: transaction.wallet || "business",
-      },
-      ...transactions,
-    ];
+  async function fetchTransactions() {
+    try {
+      const response = await fetch(`${API_URL}/transactions`);
+      const data = await response.json();
 
-    setTransactions(updated);
-    localStorage.setItem("transactions", JSON.stringify(updated));
+      if (!response.ok) {
+        alert(data.error || "Failed to fetch transactions");
+        return;
+      }
+
+      const formatted = data.map((item) => ({
+        ...item,
+        paymentMethod: item.payment_method,
+      }));
+
+      setTransactions(formatted);
+    } catch (err) {
+      console.error("Fetch transactions error:", err);
+      alert(err.message);
+    }
+  }
+
+  async function addTransaction(transaction) {
+    try {
+      const response = await fetch(`${API_URL}/transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: session.user.id,
+          description: transaction.description || "",
+          client: transaction.client || "",
+          service: transaction.service || "",
+          category: transaction.category || "",
+          amount: Number(transaction.amount),
+          type: transaction.type || "expense",
+          wallet: transaction.wallet || "personal",
+          payment_method: transaction.paymentMethod || "cash",
+          date: transaction.date || new Date().toISOString().slice(0, 10),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Failed to add transaction");
+        return false;
+      }
+
+      await fetchTransactions();
+      return true;
+    } catch (err) {
+      console.error("Add transaction error:", err);
+      alert(err.message);
+      return false;
+    }
   }
 
   function changePage(newPage) {
     setPage(newPage);
+    setMenuOpen(false);
   }
 
   async function logout() {
@@ -74,10 +129,7 @@ export default function App() {
       </button>
 
       <div style={profileWrapper}>
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          style={profileButton}
-        >
+        <button onClick={() => setMenuOpen(!menuOpen)} style={profileButton}>
           👤
         </button>
 

@@ -22,7 +22,7 @@ export default function Transactions({ transactions = [], addTransaction }) {
     paymentMethod: "cash",
   });
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
 
     if (!form.description || !form.amount) {
@@ -30,11 +30,12 @@ export default function Transactions({ transactions = [], addTransaction }) {
       return;
     }
 
-    addTransaction({
-      id: Date.now(),
+    const success = await addTransaction({
       date: new Date().toISOString().slice(0, 10),
       ...form,
     });
+
+    if (!success) return;
 
     setForm({
       description: "",
@@ -189,18 +190,6 @@ const sectionTitle = {
   textTransform: "uppercase",
   fontSize: "13px",
   color: "#b8b8b8",
-};
-
-const formGridTop = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr",
-  gap: "8px",
-};
-
-const formGridBottom = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: "8px",
 };
 
 const input = {
